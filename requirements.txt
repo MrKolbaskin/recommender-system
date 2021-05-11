@@ -1,0 +1,5 @@
+pandas
+surprise
+numpy
+termcolor
+keras
