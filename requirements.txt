@@ -3,3 +3,4 @@ surprise
 numpy
 termcolor
 keras
+tqdm
