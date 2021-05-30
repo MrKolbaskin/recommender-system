@@ -69,12 +69,17 @@ def to_df(new_users: List[List[int]], new_user_ids: List[int]):
 
 
 if __name__ == "__main__":
-    new_users = json.load(open("example/new_users.json", "r"))
+    try:
+        new_users = json.load(open("example/new_users.json", "r"))
+    except BaseException:
+        print(colored("Неправильный формат данных", "red"))
+
     new_user_ids = get_user_ids(len(new_users), count_users)
 
     new_users_matrix = normalize(np.array(new_users), axis=1)
     users_matrix = normalize(np.load("static/embedings/user_emb.npy"), axis=1)
 
+    print(colored("Предсказание векторов SVD", "yellow"))
     neighbors = cdist(new_users_matrix, users_matrix, metric="cosine").argsort(axis=1)[
         :, :COUNT_NEIGHBOURS
     ]
@@ -84,6 +89,7 @@ if __name__ == "__main__":
     for ind in range(neighbors.shape[0]):
         svd_new_users[ind] = users[neighbors[ind]].mean(axis=0)
 
+    print(colored("Сохранение данных", "yellow"))
     if main_new_users_svd is not None:
         with open(PATH_NEW_USERS, "wb") as f:
             pickle.dump(np.vstack([main_new_users_svd, svd_new_users]), f)

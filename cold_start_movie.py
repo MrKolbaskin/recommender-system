@@ -10,9 +10,16 @@ import pathlib
 
 PATH_NEW_MOVIES = pathlib.Path("static/svd_embedings/new_movies_svd.pkl").resolve()
 PATH_NEW_MOVIES_DF = pathlib.Path("static/data/new_movies.csv").resolve()
+PATH_RUBERT_DP = pathlib.Path("static/models/model_rubert_dp.pkl").resolve()
+PATH_MULTILINGUAL_DP = pathlib.Path("static/models/model_multilingual_dp.pkl").resolve()
+PATH_RUBERT_2_SVD = pathlib.Path("static/models/model_rubert_nn.h5").resolve()
+PATH_MULTILINGUAL_2_SVD = pathlib.Path(
+    "static/models/model_multilingualbert_nn.h5"
+).resolve()
 NEW_MOVIES_PATH = "example/new_movies.csv"
-movies = np.load("static/svd_embedings/movies_svd.pkl", allow_pickle=True)
 
+
+movies = np.load("static/svd_embedings/movies_svd.pkl", allow_pickle=True)
 count_movies = movies.shape[0]
 
 if PATH_NEW_MOVIES.exists():
@@ -22,13 +29,11 @@ else:
     main_new_movies_svd = None
 
 
-rubert = pickle.load(open("static/models/model_rubert_dp.pkl", "rb"))
-multilingual_bert = pickle.load(open("static/models/model_multilingual_dp.pkl", "rb"))
+rubert = pickle.load(open(PATH_RUBERT_DP, "rb"))
+multilingual_bert = pickle.load(open(PATH_MULTILINGUAL_DP, "rb"))
 
-rubert_2_svd = keras.models.load_model("static/models/model_rubert_nn.h5")
-multilingual_2_svd = keras.models.load_model(
-    "static/models/model_multilingualbert_nn.h5"
-)
+rubert_2_svd = keras.models.load_model(PATH_RUBERT_2_SVD)
+multilingual_2_svd = keras.models.load_model(PATH_MULTILINGUAL_2_SVD)
 
 
 def div_to_sent(texts):
@@ -64,6 +69,7 @@ if __name__ == "__main__":
 
     sent_data = div_to_sent(new_movies_data)
 
+    print(colored("Построение векторных представлений сюжетов", "yellow"))
     rubert_embedings = []
     multilingual_embedings = []
     for ind, plot in tqdm(enumerate(sent_data)):
@@ -81,6 +87,7 @@ if __name__ == "__main__":
     multilingual_emb_matrix = [elem["embeding"] for elem in multilingual_embedings]
     rubert_emb_matrix = [elem["embeding"] for elem in rubert_embedings]
 
+    print(colored("Предсказание векторов SVD", "yellow"))
     multilingual_svd = multilingual_2_svd.predict(multilingual_emb_matrix)
     rubert_svd = rubert_2_svd.predict(rubert_emb_matrix)
 
@@ -92,6 +99,7 @@ if __name__ == "__main__":
     )
     svd_new_movies = np.array([elem["svd_emb"] for elem in movie_embs])
 
+    print(colored("Сохранение данных", "yellow"))
     if main_new_movies_svd is not None:
         with open(PATH_NEW_MOVIES, "wb") as f:
             pickle.dump(np.vstack([main_new_movies_svd, svd_new_movies]), f)
